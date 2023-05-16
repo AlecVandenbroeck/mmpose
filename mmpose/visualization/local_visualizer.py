@@ -575,12 +575,12 @@ class PoseLocalVisualizer(OpencvBackendVisualizer):
         if show:
             self.show(drawn_img, win_name=name, wait_time=wait_time)
 
-        if out_file is not None:
-            if input_type == 'image':
+        if input_type == 'image':
+            if out_file is not None:
                 print('I am saving the image')
                 mmcv.imwrite(drawn_img[..., ::-1], out_file)
-        else:
-            # save drawn_img to backends
-            self.add_image(name, drawn_img, step)
+            else:
+                # save drawn_img to backends
+                self.add_image(name, drawn_img, step)
 
         return self.get_image()
