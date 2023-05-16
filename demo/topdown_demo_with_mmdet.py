@@ -30,7 +30,7 @@ def process_one_image(args,
                       pose_estimator,
                       visualizer=None,
                       show_interval=0.0,
-                      input_type='img'):
+                      input_type='image'):
     """Visualize predicted keypoints (and heatmaps) of one image."""
 
     # predict bbox

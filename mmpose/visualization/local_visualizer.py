@@ -466,7 +466,7 @@ class PoseLocalVisualizer(OpencvBackendVisualizer):
                        out_file: Optional[str] = None,
                        kpt_thr: float = 0.3,
                        step: int = 0,
-                       input_type: str = 'img') -> None:
+                       input_type: str = 'image') -> None:
         """Draw datasample and save to all backends.
 
         - If GT and prediction are plotted at the same time, they are
@@ -575,8 +575,10 @@ class PoseLocalVisualizer(OpencvBackendVisualizer):
         if show:
             self.show(drawn_img, win_name=name, wait_time=wait_time)
 
-        if input_type == 'img' and out_file is not None:
-            mmcv.imwrite(drawn_img[..., ::-1], out_file)
+        if out_file is not None:
+            if input_type == 'image':
+                print('I am saving the image')
+                mmcv.imwrite(drawn_img[..., ::-1], out_file)
         else:
             # save drawn_img to backends
             self.add_image(name, drawn_img, step)
