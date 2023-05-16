@@ -29,7 +29,8 @@ def process_one_image(args,
                       detector,
                       pose_estimator,
                       visualizer=None,
-                      show_interval=0):
+                      show_interval=0.0,
+                      input_type='img'):
     """Visualize predicted keypoints (and heatmaps) of one image."""
 
     # predict bbox
@@ -63,7 +64,8 @@ def process_one_image(args,
             skeleton_style=args.skeleton_style,
             show=args.show,
             wait_time=show_interval,
-            kpt_thr=args.kpt_thr)
+            kpt_thr=args.kpt_thr,
+            input_type=input_type)
 
     # if there is no instance detected, return None
     return data_samples.get('pred_instances', None)
@@ -191,6 +193,7 @@ def main():
     pose_estimator.cfg.visualizer.radius = args.radius
     pose_estimator.cfg.visualizer.alpha = args.alpha
     pose_estimator.cfg.visualizer.line_width = args.thickness
+    pose_estimator.cfg.visualizer.save_dir = args.output_root
     visualizer = VISUALIZERS.build(pose_estimator.cfg.visualizer)
     # the dataset_meta is loaded from the checkpoint and
     # then pass to the model in init_pose_estimator
@@ -206,7 +209,7 @@ def main():
 
         # inference
         pred_instances = process_one_image(args, args.input, detector,
-                                           pose_estimator, visualizer)
+                                           pose_estimator, visualizer, input_type=input_type)
 
         if args.save_predictions:
             pred_instances_list = split_instances(pred_instances)
@@ -236,7 +239,7 @@ def main():
             # topdown pose estimation
             pred_instances = process_one_image(args, frame, detector,
                                                pose_estimator, visualizer,
-                                               0.001)
+                                               0.001, input_type=input_type)
 
             if args.save_predictions:
                 # save prediction results
