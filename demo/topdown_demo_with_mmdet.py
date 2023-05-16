@@ -206,7 +206,7 @@ def main():
         input_type = mimetypes.guess_type(args.input)[0].split('/')[0]
 
     if input_type == 'image':
-
+        print('IS AN IMAGE')
         # inference
         pred_instances = process_one_image(args, args.input, detector,
                                            pose_estimator, visualizer, input_type=input_type)
@@ -219,7 +219,7 @@ def main():
             mmcv.imwrite(mmcv.rgb2bgr(img_vis), output_file)
 
     elif input_type in ['webcam', 'video']:
-
+        print('IS A VIDEO')
         if args.input == 'webcam':
             cap = cv2.VideoCapture(0)
         else:
@@ -236,10 +236,13 @@ def main():
             if not success:
                 break
 
+            print(f"1: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
             # topdown pose estimation
             pred_instances = process_one_image(args, frame, detector,
                                                pose_estimator, visualizer,
                                                0.001, input_type=input_type)
+            print(
+                f"2: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
 
             if args.save_predictions:
                 # save prediction results
@@ -251,6 +254,8 @@ def main():
             # output videos
             if output_file:
                 frame_vis = visualizer.get_image()
+                print(
+                    f"3: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
 
                 if video_writer is None:
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -263,6 +268,8 @@ def main():
                         (frame_vis.shape[1], frame_vis.shape[0]))
 
                 video_writer.write(mmcv.rgb2bgr(frame_vis))
+            print(
+                f"4: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
 
             # press ESC to exit
             if cv2.waitKey(5) & 0xFF == 27:
