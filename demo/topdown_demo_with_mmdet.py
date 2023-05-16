@@ -235,7 +235,7 @@ def main():
                 success, frame = cap.read()
                 frame_idx += 1
                 #print(f'Processing frame {frame_idx}')
-                if not success:
+                if not success or frame_idx > 200:
                     break
 
                 # topdown pose estimation
