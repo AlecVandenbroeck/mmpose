@@ -52,7 +52,7 @@ def process_one_image(args,
     elif isinstance(img, np.ndarray):
         img = mmcv.bgr2rgb(img)
 
-    if visualizer is not None:
+    if visualizer is not None and input_type == 'image':
         visualizer.add_datasample(
             'result',
             img,
