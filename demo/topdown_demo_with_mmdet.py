@@ -9,6 +9,7 @@ import json_tricks as json
 import mmcv
 import mmengine
 import numpy as np
+from tqdm import tqdm
 
 from mmpose.apis import inference_topdown
 from mmpose.apis import init_model as init_pose_estimator
@@ -229,58 +230,53 @@ def main():
         pred_instances_list = []
         frame_idx = 0
 
-        while cap.isOpened():
-            success, frame = cap.read()
-            frame_idx += 1
+        with tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT))) as pbar:
+            while cap.isOpened():
+                success, frame = cap.read()
+                frame_idx += 1
+                #print(f'Processing frame {frame_idx}')
+                if not success:
+                    break
 
-            if not success:
-                break
+                # topdown pose estimation
+                pred_instances = process_one_image(args, frame, detector,
+                                                   pose_estimator, visualizer,
+                                                   0.001, input_type=input_type)
 
-            print(f"1: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
-            # topdown pose estimation
-            pred_instances = process_one_image(args, frame, detector,
-                                               pose_estimator, visualizer,
-                                               0.001, input_type=input_type)
-            print(
-                f"2: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
+                if args.save_predictions:
+                    # save prediction results
+                    pred_instances_list.append(
+                        dict(
+                            frame_id=frame_idx,
+                            instances=split_instances(pred_instances)))
 
-            if args.save_predictions:
-                # save prediction results
-                pred_instances_list.append(
-                    dict(
-                        frame_id=frame_idx,
-                        instances=split_instances(pred_instances)))
+                # output videos
+                if output_file:
+                    frame_vis = visualizer.get_image()
 
-            # output videos
-            if output_file:
-                frame_vis = visualizer.get_image()
-                print(
-                    f"3: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
+                    if video_writer is None:
+                        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                        # the size of the image with visualization may vary
+                        # depending on the presence of heatmaps
+                        video_writer = cv2.VideoWriter(
+                            output_file,
+                            fourcc,
+                            25,  # saved fps
+                            (frame_vis.shape[1], frame_vis.shape[0]))
 
-                if video_writer is None:
-                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                    # the size of the image with visualization may vary
-                    # depending on the presence of heatmaps
-                    video_writer = cv2.VideoWriter(
-                        output_file,
-                        fourcc,
-                        25,  # saved fps
-                        (frame_vis.shape[1], frame_vis.shape[0]))
+                    video_writer.write(mmcv.rgb2bgr(frame_vis))
 
-                video_writer.write(mmcv.rgb2bgr(frame_vis))
-            print(
-                f"4: {os.path.exists(os.path.join('/content', 'mmpose', 'vis_results', 'demo', 'vis_data', 'vis_image', 'result_0.png'))}")
+                # press ESC to exit
+                if cv2.waitKey(5) & 0xFF == 27:
+                    break
 
-            # press ESC to exit
-            if cv2.waitKey(5) & 0xFF == 27:
-                break
+                time.sleep(args.show_interval)
+                pbar.update(1)
 
-            time.sleep(args.show_interval)
+            if video_writer:
+                video_writer.release()
 
-        if video_writer:
-            video_writer.release()
-
-        cap.release()
+            cap.release()
 
     else:
         args.save_predictions = False
